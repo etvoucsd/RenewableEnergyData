@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reduced Size Radar Charts</title>
+    <style>
+        body {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        svg {
+            display: block;
+            margin: auto;
+        }
+
+        .tooltip {
+        position: absolute;
+        text-align: center;
+        padding: 8px;
+        font: 12px sans-serif;
+        background: white;
+        border: 0px;
+        border-radius: 8px;
+        pointer-events: none;
+        opacity: 0;
+        }   
+    </style>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+
+<script>
+    // Your data
+    let energyData = [
+        {"country":"China","solar_elec_per_capita":299.968,"wind_elec_per_capita":534.895,"biofuel_elec_per_capita":123.874,"hydro_elec_per_capita":913.908},
+        {"country":"France","solar_elec_per_capita":310.244,"wind_elec_per_capita":596.658,"biofuel_elec_per_capita":155.199,"hydro_elec_per_capita":716.268},
+        {"country":"Germany","solar_elec_per_capita":719.805,"wind_elec_per_capita":1498.264,"biofuel_elec_per_capita":497.902,"hydro_elec_per_capita":204.63},
+        {"country":"India","solar_elec_per_capita":67.148,"wind_elec_per_capita":49.429,"biofuel_elec_per_capita":28.747,"hydro_elec_per_capita":123.429},
+        {"country":"Japan","solar_elec_per_capita":826.128,"wind_elec_per_capita":65.913,"biofuel_elec_per_capita":334.646,"hydro_elec_per_capita":604.106},
+        {"country":"United States","solar_elec_per_capita":606.226,"wind_elec_per_capita":1283.81,"biofuel_elec_per_capita":153.271,"hydro_elec_per_capita":735.346},
+        {"country":"Vietnam","solar_elec_per_capita":268.57,"wind_elec_per_capita":81.885,"biofuel_elec_per_capita":3.666,"hydro_elec_per_capita":977.32}
+    ];
+
+    // // Load data from CSV file
+    // d3.csv("out.csv").then(function(data) {
+    //     // Process the loaded data
+    //     let energyData = data.map(function(d) {
+    //         return {
+    //             "country": d.country,
+    //             "solar_elec_per_capita": +d.solar_energy_per_capita,
+    //             "wind_elec_per_capita": +d.wind_energy_per_capita,
+    //             "biofuel_elec_per_capita": +d.biofuel_cons_per_capita,
+    //             "hydro_elec_per_capita": +d.hydro_energy_per_capita
+    //         };
+    //     });
+    // });
+    
+        // Define colorScale outside of the createRadarChart function
+        let countries = energyData.map(d => d.country);
+        let colorScale = d3.scaleOrdinal()
+            .domain(countries)
+            .range(d3.schemeCategory10);
+
+    function createRadarChart(countryData) {
+        // Define dimensions at the start of the function
+        let width = 300;  // Adjusted width
+        let height = 300;  // Adjusted height
+
+        // Create a new SVG element for this country
+        let svg = d3.select("body").append("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .attr("class", countryData.country.replace(/\s/g, '_')); // Replace spaces with underscores
+
+
+        // plotting grid lines
+        let radialScale = d3.scaleLinear()
+            .domain([0, 1500]) // Assuming the maximum value for your data
+            .range([0, 100]);  // Adjusted scaling factor
+        let ticks = [300, 600, 900, 1200, 1500]; // Adjust as needed
+
+        // adding circles
+        svg.selectAll("circle")
+            .data(ticks)
+            .join(
+                enter => enter.append("circle")
+                    .attr("cx", width / 2)
+                    .attr("cy", height / 2)
+                    .attr("fill", "none")
+                    .attr("stroke", "gray")
+                    .attr("r", d => radialScale(d))
+            );
+
+        // add ticks
+        svg.selectAll(".ticklabel")
+            .data(ticks)
+            .join(
+                enter => enter.append("text")
+                    .attr("class", "ticklabel")
+                    .attr("x", width / 2 + 5)
+                    .attr("y", d => height / 2 - radialScale(d))
+                    .text(d => d.toString())
+                    .attr("font-size", "9px")
+            );
+
+        // plotting the axes
+        function angleToCoordinate(angle, value) {
+            let x = Math.cos(angle) * radialScale(value);
+            let y = Math.sin(angle) * radialScale(value);
+            return {"x": width / 2 + x, "y": height / 2 - y};
+        }
+
+        // offset the labels for the axis
+        let featureData = Object.keys(energyData[0]).filter(f => f !== "country").map((f, i) => {
+            let angle = (Math.PI / 2) + (2 * Math.PI * i / (Object.keys(energyData[0]).length - 1));
+            let xOffset = 0;  // Default xOffset
+
+            // Adjust xOffset for specific cases
+            if (f === "wind_elec_per_capita") {
+                xOffset = +400;  // Adjusted xOffset for wind_elec_per_capita
+            } else if (f === "hydro_elec_per_capita") {
+                xOffset = -800;  // Adjusted xOffset for hydro_elec_per_capita
+            }
+
+            return {
+                "name": f,
+                "angle": angle,
+                "line_coord": angleToCoordinate(angle, 1500), // Adjust the length as needed
+                "label_coord": angleToCoordinate(angle, 1750 + xOffset) // Adjust as needed
+            };
+        });
+
+        // draw axis line
+        svg.selectAll("line")
+            .data(featureData)
+            .join(
+                enter => enter.append("line")
+                    .attr("x1", width / 2)
+                    .attr("y1", height / 2)
+                    .attr("x2", d => d.line_coord.x)
+                    .attr("y2", d => d.line_coord.y)
+                    .attr("stroke", "black")
+            );
+
+        // draw axis label
+        svg.selectAll(".axislabel")
+            .data(featureData)
+            .join(
+                enter => enter.append("text")
+                    .attr("x", d => d.label_coord.x)
+                    .attr("y", d => d.label_coord.y)
+                    .text(d => d.name)
+                    .attr("font-size", "9px")
+            );
+
+        // plotting data
+        let line = d3.line()
+            .x(d => d.x)
+            .y(d => d.y)
+            .curve(d3.curveLinearClosed);  // This ensures the path is closed and lines are sharp
+
+
+        function getPathCoordinates(data_point) {
+            let coordinates = featureData.map((feature) => {
+                let angle = feature.angle;
+                let value = data_point[feature.name];
+                let coordinate = angleToCoordinate(angle, value);
+                return { ...coordinate, value: value }; // include the value here
+            });
+            return coordinates;
+        }
+
+        // Use only the data for the selected country
+        let pathData = getPathCoordinates(countryData);
+
+        // draw the path element for the country
+        svg.append("path")
+            .datum(pathData)
+            .attr("d", line)
+            .attr("stroke-width", 2)  // Adjusted stroke-width
+            .attr("stroke", colorScale(countryData.country))
+            .attr("fill", colorScale(countryData.country))
+            .attr("fill-opacity", 0.1)
+            .attr("stroke-opacity", 1);
+
+        // Define the tooltip for the hover effect
+        let tooltip = d3.select("body").append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0)
+            .style("position", "absolute")
+            .style("padding", "6px")
+            .style("background-color", "white")
+            .style("border", "1px solid #000")
+            .style("border-radius", "4px")
+            .style("pointer-events", "none")
+            .style("font-size", "12px");
+
+        // Add points for each data point
+        svg.selectAll(".datapoint")
+            .data(pathData)
+            .enter().append("circle")
+            .attr("class", "datapoint")
+            .attr("cx", d => d.x)
+            .attr("cy", d => d.y)
+            .attr("r", 5)  // Adjusted radius for points
+            .attr("fill", colorScale(countryData.country))
+            .attr("stroke", "black")
+            .attr("stroke-width", 1)
+            .on("mouseover", function (event, d) {
+                // let value = countryData[Object.keys(countryData).find(key => {
+                //     let coord = angleToCoordinate(featureData.find(f => f.name === key).angle, countryData[key]);
+                //     return coord.x === d.x && coord.y === d.y;
+                // })];
+
+                tooltip.transition()
+                    .duration(200)
+                    .style("opacity", .9);
+                tooltip.html("Value: " + d3.format(".2f")(d.value))
+                    .style("left", (event.pageX) + "px")
+                    .style("top", (event.pageY - 28) + "px");
+            })
+            .on("mousemove", function (event) {
+                tooltip.style("left", (event.pageX) + "px")
+                    .style("top", (event.pageY - 28) + "px");
+            })
+            .on("mouseleave", function (d) {
+                tooltip.transition()
+                    .duration(500)
+                    .style("opacity", 0);
+            });
+
+        // add title
+        svg.append("text")
+            .attr("x", width / 2)
+            .attr("y", 20)
+            .attr("text-anchor", "middle")
+            .text(countryData.country)
+            .attr("font-size", "14px")  // Adjusted font size for the title
+            .attr("font-weight", "bold");  // Bold font for the title
+    }
+
+    // Loop through each country and create a radar chart
+    energyData.forEach(function(countryData) {
+        createRadarChart(countryData);
+    });
+</script>
+</body>
+</html>
