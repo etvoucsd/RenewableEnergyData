@@ -2,6 +2,7 @@
 
 This is our Project on a Renewable Energy Dataset for our DSC 106 class.
 * The link to our project is here: [Renewable Energy Interactive Radar Chart](https://etvoucsd.github.io/RenewableEnergyData/dsc106project3.html)
+* The link to our write - up on the project is here: [Project-Write Up](https://docs.google.com/document/d/18UMJkuv8YmAhcdcIO0NX3_Q94d4zSPBmvuL4zOwM5lg/edit)
 
 ## Design Decisions:
 ### Visual Encodings:
@@ -15,4 +16,4 @@ This is our Project on a Renewable Energy Dataset for our DSC 106 class.
 *  **DropDown Interaction Implementation**: Developing the dropdown menu and ensuring it interacts correctly with the charts involved careful consideration of D3.js event handling. The goal was to provide the user with the option of viewing data per capita (to look at a more comparable scale between large and small countries) and the original data.
 * **Documentation and ReadMe**: Effort was dedicated to making the charts responsive and visually appealing. This included adjusting dimensions, grid lines, and tooltips for an optimal user experience.
 
-* Ethan: About 3 hours was spent on the SVG element creation, with about 2 hours debugging problems with data formatting with the radar. About 1 hour was spent creating the axis and details with the formatting the graphs to make it look visually pleasing. Axis labels, scales, and sizing as well as debugging problems with the syntax and data compatibility.
+* Ethan: About 3 hours was spent on the SVG element creation, with about 2 hours debugging problems with data formatting with the radar. About 1 hour was spent creating the axis and details with the formatting the graphs to make it look visually pleasing. Axis labels, scales, and sizing as well as debugging problems with the syntax and data compatibility. A little under an hour into the writeup.
