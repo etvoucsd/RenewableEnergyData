@@ -1,0 +1,148 @@
+<html>
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        svg {
+            display: block;
+            margin: auto;
+        }
+    </style>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <body>
+    </body>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <body>
+    </body>
+    <script>
+        // data here
+        let energyData = [
+            {"country":"China","solar_elec_per_capita":299.968,"wind_elec_per_capita":534.895,"biofuel_elec_per_capita":123.874,"hydro_elec_per_capita":913.908},
+            {"country":"France","solar_elec_per_capita":310.244,"wind_elec_per_capita":596.658,"biofuel_elec_per_capita":155.199,"hydro_elec_per_capita":716.268},
+            {"country":"Germany","solar_elec_per_capita":719.805,"wind_elec_per_capita":1498.264,"biofuel_elec_per_capita":497.902,"hydro_elec_per_capita":204.63},
+            {"country":"India","solar_elec_per_capita":67.148,"wind_elec_per_capita":49.429,"biofuel_elec_per_capita":28.747,"hydro_elec_per_capita":123.429},
+            {"country":"Japan","solar_elec_per_capita":826.128,"wind_elec_per_capita":65.913,"biofuel_elec_per_capita":334.646,"hydro_elec_per_capita":604.106},
+            {"country":"United States","solar_elec_per_capita":606.226,"wind_elec_per_capita":1283.81,"biofuel_elec_per_capita":153.271,"hydro_elec_per_capita":735.346},
+            {"country":"Vietnam","solar_elec_per_capita":268.57,"wind_elec_per_capita":81.885,"biofuel_elec_per_capita":3.666,"hydro_elec_per_capita":977.32}
+        ];
+
+        // some dimensions
+        let width = 900;
+        let height = 900;
+        let svg = d3.select("body").append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        // plotting grid lines
+        let radialScale = d3.scaleLinear()
+            .domain([0, 1500]) // Assuming the maximum value for your data
+            .range([0, 250]);
+        let ticks = [300, 600, 900, 1200, 1500]; // Adjust as needed
+
+        // adding circles
+        svg.selectAll("circle")
+        .data(ticks)
+        .join(
+            enter => enter.append("circle")
+                .attr("cx", width / 2)
+                .attr("cy", height / 2)
+                .attr("fill", "none")
+                .attr("stroke", "gray")
+                .attr("r", d => radialScale(d))
+        );
+ 
+        // add ticks
+        svg.selectAll(".ticklabel")
+        .data(ticks)
+        .join(
+            enter => enter.append("text")
+                .attr("class", "ticklabel")
+                .attr("x", width / 2 + 5)
+                .attr("y", d => height / 2 - radialScale(d))
+                .text(d => d.toString())
+        );
+
+        // plotting the axes
+        function angleToCoordinate(angle, value){
+            let x = Math.cos(angle) * radialScale(value);
+            let y = Math.sin(angle) * radialScale(value);
+            return {"x": width / 2 + x, "y": height / 2 - y};
+        }
+
+        // offset the labels for the axis
+        let featureData = Object.keys(energyData[0]).filter(f => f !== "country").map((f, i) => {
+            let angle = (Math.PI / 2) + (2 * Math.PI * i / (Object.keys(energyData[0]).length - 1));
+            let xOffset = (f === "wind") ? -500 : 0; // Adjust the xOffset for the "wind" axis label
+            return {
+                "name": f,
+                "angle": angle,
+                "line_coord": angleToCoordinate(angle, 1500), // Adjust the length as needed
+                "label_coord": angleToCoordinate(angle, 1750 + xOffset) // Adjust as needed
+            };
+        });
+
+        // draw axis line
+        svg.selectAll("line")
+            .data(featureData)
+            .join(
+                enter => enter.append("line")
+                    .attr("x1", width / 2)
+                    .attr("y1", height / 2)
+                    .attr("x2", d => d.line_coord.x)
+                    .attr("y2", d => d.line_coord.y)
+                    .attr("stroke","black")
+            );
+
+        // draw axis label
+        svg.selectAll(".axislabel")
+            .data(featureData)
+            .join(
+                enter => enter.append("text")
+                    .attr("x", d => d.label_coord.x)
+                    .attr("y", d => d.label_coord.y)
+                    .text(d => d.name)
+            );
+        
+            // plotting data
+            let line = d3.line()
+                .x(d => d.x)
+                .y(d => d.y);
+
+            let countries = energyData.map(d => d.country);
+            let colorScale = d3.scaleOrdinal()
+                .domain(countries)
+                .range(d3.schemeCategory10);
+
+            // draw the path element
+            svg.selectAll("path")
+                .data(energyData)
+                .join(
+                    enter => enter.append("path")
+                        .datum(d => getPathCoordinates(d))
+                        .attr("d", line)
+                        .attr("stroke-width", 3)
+                        .attr("stroke", d => colorScale(d.country)) // Use color scale based on country
+                        .attr("fill", "none")
+                        .attr("stroke-opacity", 1)
+                );
+
+
+        // helper to get the coordinates
+        function getPathCoordinates(data_point) {
+            let coordinates = [];
+            for (var i = 0; i < featureData.length; i++) {
+                let ft_name = featureData[i].name;
+                let angle = featureData[i].angle;
+                coordinates.push(angleToCoordinate(angle, data_point[ft_name]));
+            }
+            return coordinates;
+        }
+
+    </script>
+</html>
