@@ -1,7 +1,7 @@
 # RenewableEnergyData
 
 This is our Project on a Renewable Energy Dataset for our DSC 106 class.
-* The link to our project is here: [Renewable Energy Interactive Radar Chart](https://etvoucsd.github.io/RenewableEnergyData/dsc106project3.html)
+* The link to our project is here: [Renewable Energy Interactive Radar Chart](https://etvoucsd.github.io/RenewableEnergyData/dsc106project3final.html)
 * The link to our write - up on the project is here: [Project-Write Up](https://docs.google.com/document/d/18UMJkuv8YmAhcdcIO0NX3_Q94d4zSPBmvuL4zOwM5lg/edit)
 
 ## Design Decisions:
