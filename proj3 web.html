@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Energy Consumption Radar Chart By Country</title>
+    <style>
+        body {
+            font-family: Geneva, sans-serif;
+            border: 20px solid white;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .smaller-font-section {
+            font-size: 10px;
+        }
+
+        svg {
+            display: block;
+            margin: auto;
+        }
+
+        .tooltip {
+        position: absolute;
+        text-align: center;
+        padding: 8px;
+        font: 12px sans-serif;
+        background: white;
+        border: 0px;
+        border-radius: 8px;
+        pointer-events: none;
+        opacity: 0;
+        }   
+    </style>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <div>
+    <h1>How do the energy consumption<br>compare between 7 of the largest <br>economies in the world?
+    </h1>
+    <h4>Consumption Type:
+        <select id="dataset">
+            <option value="energyData">Consumption per capita</option>
+            <option value="otherData">Primary energy consumption</option>
+        </select>
+        <text class="smaller-font-section">
+            <br>
+            <text>*Consumption per capita: An average consumption per person in a country</text>
+            <br>
+            <text>*Primary energy consumption: The total energy demand of a country.</text>
+        </text>
+    </h4>
+
+
+
+
+
+    <text>Here, we have collected energy consumption data from 7 of the</text>
+    <br>
+    <text> top 10 countries with the highest GDP. We visualized 5 different </text>
+    <br>
+    <text> energy types: solar, wind, nuclear, coal, and hydropower energy to  </text>
+    <br>
+    <text> analyze the difference and similarities in each country's energy </text>
+    <br>
+    <text> consumption. </text>
+    <br>
+    <br>
+    
+    <text>Click the following link for the dataset:</text>
+    <a href="https://github.com/owid/energy-data?tab=readme-ov-file">Our World in Data</a>
+    <br>
+    </div>
+
+<script>
+    
+    // Your data
+    let energyData = [
+        {"country":"China","Solar":0.793103	,"Wind":0.818966,"Nuclear":0.982759	,"Coal":0.965517, "Hydropower": 0.827586},
+        {"country":"France","Solar":0.801724,"Wind":0.853448,"Nuclear":0.982759,"Coal":0.586207, "Hydropower": 0.784483},
+        {"country":"Germany","Solar":0.939655,"Wind":0.948276,"Nuclear":0.801724,"Coal":0.887931, "Hydropower": 0.646552},
+        {"country":"India","Solar":0.594828,"Wind":0.603448,"Nuclear":0.724138,"Coal":0.793103, "Hydropower": 0.577586},
+        {"country":"Japan","Solar":0.974138	,"Wind":0.655172,"Nuclear":0.810345,"Coal":0.913793, "Hydropower": 0.741379},
+        {"country":"United States","Solar":0.913793,"Wind":0.931034,"Nuclear":0.905172,"Coal":0.896552, "Hydropower": 0.801724},
+        {"country":"Russia","Solar":0.474138,"Wind":0.568966,"Nuclear":0.862069,"Coal":0.870690, "Hydropower": 0.879310},
+    ];
+    let energyDataValues = [
+        {"country":"China","Solar":782.049,"Wind":1394.535,"Nuclear":733.053,"Coal":17224.002,"Hydropower":2382.674},
+        {"country":"France","Solar":0.801724,"Wind":0.853448,"Nuclear":0.982759,"Coal":0.586207, "Hydropower": 0.784483},
+        {"country":"Germany","Solar":0.939655,"Wind":0.948276,"Nuclear":0.801724,"Coal":0.887931, "Hydropower": 0.646552},
+        {"country":"India","Solar":175.06,"Wind":128.86,"Nuclear":81.549,"Coal":3938.424,"Hydropower":321.804},
+        {"country":"Japan","Solar":0.974138	,"Wind":0.655172,"Nuclear":0.810345,"Coal":0.913793, "Hydropower": 0.741379},
+        {"country":"United States","Solar":1588.926,"Wind":3384.858,"Nuclear":6006.149,"Coal":8103.174,"Hydropower":1992.603},
+        {"country":"Russia","Solar":43.214,"Wind":75.686,"Nuclear":3867.301,"Coal":6131.82,"Hydropower":3561.133},
+    ];
+
+    let otherData = [
+        {"country":"China","Solar":0.9913793103448276,"Wind":0.9813793103448276,"Nuclear":0.7827586206896551, "Coal":0.9413793103448276,"Hydropower":0.9913793103448276},
+        {"country":"France","Solar":0.896551724137931,"Wind":0.9310344827586207,"Nuclear":0.9741379310344828,"Coal":0.7413793103448276,"Hydropower":0.8793103448275862},
+        {"country":"Germany","Solar":0.9568965517241379,"Wind":0.9741379310344828,"Nuclear":0.8793103448275862,"Coal":0.9224137931034483,"Hydropower":0.7586206896551724},
+        {"country":"India","Solar":0.9655172413793104,"Wind":0.9482758620689655,"Nuclear":0.896551724137931,"Coal":0.9827586206896551,"Hydropower":0.9482758620689655},
+        {"country":"Japan","Solar":0.9741379310344828,"Wind":0.7672413793103449,"Nuclear":0.9224137931034483,"Coal":0.9655172413793104,"Hydropower":0.9224137931034483},
+        {"country":"United States","Solar":0.9827586206896551,"Wind":0.9827586206896551,"Nuclear":0.9913793103448276,"Coal":0.9741379310344828,"Hydropower":0.9655172413793104},
+        {"country":"Russia","Solar":0.6896551724137931,"Wind":0.7068965517241379,"Nuclear":0.9655172413793104,"Coal":0.9396551724137931,"Hydropower":0.9568965517241379}
+    ];
+    let otherDataValues = [
+        {"country":"China","Solar":1115.113,"Wind":1988.45,"Nuclear":1045.25,"Coal":24559.486,"Hydropower":3397.424},
+        {"country":"France","Solar":52.484,"Wind":99.091,"Nuclear":737.357,"Coal":59.458,"Hydropower":116.242},
+        {"country":"Germany","Solar":158.48,"Wind":326.64,"Nuclear":86.812,"Coal":647.222,"Hydropower":45.625},
+        {"country":"India","Solar":248.09,"Wind":182.617,"Nuclear":115.57,"Coal":5581.429,"Hydropower":456.052},
+        {"country":"Japan","Solar":266.965,"Wind":21.309,"Nuclear":129.528,"Coal":1365.525,"Hydropower":195.23},
+        {"country":"United States","Solar":537.517,"Wind":1145.063,"Nuclear":2031.819,"Coal":2741.221,"Hydropower":674.078},
+        {"country":"Russia","Solar":6.254,"Wind":10.953,"Nuclear":559.65,"Coal":887.356,"Hydropower":515.343},
+    ];
+
+    // Define colorScale outside of the createRadarChart function
+    let countries = energyData.map(d => d.country);
+    let colorScale = d3.scaleOrdinal()
+        .domain(countries)
+        .range(d3.schemeCategory10);
+
+    function createRadarChart(countryData) {
+        // Define dimensions at the start of the function
+        // let width = 400;  // Adjusted width
+        // let height = 400;  // Adjusted height
+        let width = 400;  // Adjusted width
+        let height = 400;  // Adjusted height
+
+        // Create a new SVG element for this country
+        let svg = d3.select("body").append("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .attr("class", countryData.country.replace(/\s/g, '_')); // Replace spaces with underscores
+
+
+        // plotting grid lines
+        let radialScale = d3.scaleLinear()
+        //     .domain([0, 1500]) // Assuming the maximum value for your data
+        //     .range([0, 100]);  // Adjusted scaling factor
+        // let ticks = [400, 800, 1200, 1600, 2000]; // Adjust as needed
+        .domain([0, 1]) // Assuming the maximum value for your data
+            .range([0, 120]);  // Adjusted scaling factor
+        let ticks = [0.2, 0.4, 0.6, 0.8, 1]; // Adjust as needed
+
+        let color = ["#EBEBEB", "#F0F0F0", "#F5F5F5", "#FAFAFA", "#FFFFFF"]
+
+        for (let i = 0; i < ticks.length - 1; i++) {
+            let arc = d3.arc()
+                .innerRadius(radialScale(ticks[i]))
+                .outerRadius(radialScale(ticks[i + 1]))
+                .startAngle(0)
+                .endAngle(2 * Math.PI);
+            
+            svg.append("path")
+                .attr("d", arc)
+                .attr("fill", color[i])
+                .attr("transform", "translate(200, 200)");
+        }
+        svg.append("circle") //add center circle
+            .attr("cx", 200)
+            .attr("cy", 200)
+            // .attr("r", 30)
+            .attr("r", 25)
+            .attr("fill", "#E6E6E6")
+            .attr("stroke", "gray") 
+            .attr("stroke-width", .5);
+
+        // adding circles
+        svg.selectAll("circle")
+            .data(ticks)
+            .join(
+                enter => enter.append("circle")
+                    .attr("cx", width / 2)
+                    .attr("cy", height / 2)
+                    .attr("fill", "none")
+                    .attr("stroke", "gray")
+                    .attr("stroke-width", .5)
+                    .attr("r", d => radialScale(d))
+            );
+
+        // add ticks
+        svg.selectAll(".ticklabel")
+            .data(ticks)
+            .join(
+                enter => enter.append("text")
+                    .attr("class", "ticklabel")
+                    .attr("x", width / 2 + 5)
+                    .attr("y", d => height / 2 - radialScale(d))
+                    .text(d => d.toString())
+                    .attr("font-size", "9px")
+                    .style("font-family", "Nunito, sans-serif")
+            );
+
+        // plotting the axes
+        function angleToCoordinate(angle, value) {
+            let x = Math.cos(angle) * radialScale(value);
+            let y = Math.sin(angle) * radialScale(value);
+            return {"x": width / 2 + x, "y": height / 2 - y};
+        }
+
+        // offset the labels for the axis
+        let featureData = Object.keys(energyData[0]).filter(f => f !== "country").map((f, i) => {
+            let angle = (Math.PI / 2) + (2 * Math.PI * i / (Object.keys(energyData[0]).length - 1));
+            let xOffset = 0;  // Default xOffset
+
+            // Adjust xOffset for specific cases
+            if (f === "wind_elec_per_capita") {
+                xOffset = +400;  // Adjusted xOffset for wind_elec_per_capita
+            } else if (f === "hydro_elec_per_capita") {
+                xOffset = -800;  // Adjusted xOffset for hydro_elec_per_capita
+            }
+
+            return {
+                "name": f,
+                "angle": angle,
+                "line_coord": angleToCoordinate(angle, 1), // Adjust the length as needed
+                "label_coord": angleToCoordinate(angle, 1 + xOffset) // Adjust as needed
+            };
+        });
+
+        // draw axis line
+        svg.selectAll("line")
+            .data(featureData)
+            .join(
+                enter => enter.append("line")
+                    .attr("x1", width / 2)
+                    .attr("y1", height / 2)
+                    .attr("x2", d => d.line_coord.x)
+                    .attr("y2", d => d.line_coord.y)
+                    .attr("stroke", "black")
+            );
+
+        // draw axis label
+        svg.selectAll(".axislabel")
+            .data(featureData)
+            .join(
+                enter => enter.append("text")
+                    .attr("x", d => d.label_coord.x - (width/2 - d.label_coord.x)*0.15)
+                    .attr("y", d => d.label_coord.y- (height/2 - d.label_coord.y)*0.15)
+                    .text(d => d.name)
+                    .attr("font-size", "11px")
+                    .style("font-family", "Nunito, sans-serif")
+                    
+            );
+
+        // plotting data
+
+        let line = d3.line()
+            .x(d => d.x)
+            .y(d => d.y);
+
+        function getPathCoordinates(data_point) {
+            let coordinates = featureData.map((feature) => {
+                let angle = feature.angle;
+                let value = data_point[feature.name];
+                let coordinate = angleToCoordinate(angle, value);
+                return { ...coordinate, value: value }; // include the value here
+            });
+            return coordinates;
+        }
+
+        // Use only the data for the selected country
+        let pathData = getPathCoordinates(countryData);
+
+        pathData.push(pathData[0]); // push first col to last to create last segment
+
+        // draw the path element for the country
+        svg.append("path")
+            .datum(pathData)
+            .attr("d", line)
+            .attr("stroke-width", 2)  // Adjusted stroke-width
+            .attr("stroke", colorScale(countryData.country))
+            .attr("fill", colorScale(countryData.country))
+            .attr("fill-opacity", 0.3)
+            .attr("stroke-opacity", 1);
+    
+
+        // Define the tooltip for the hover effect
+        let tooltip = d3.select("body").append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0)
+            .style("position", "absolute")
+            .style("padding", "6px")
+            .style("background-color", "white")
+            .style("border", "1px solid #000")
+            .style("border-radius", "4px")
+            .style("pointer-events", "none")
+            .style("font-size", "12px")
+            .style("font-family", "Nunito, sans-serif");
+
+        // Add points for each data point
+        svg.selectAll(".datapoint")
+            .data(pathData)
+            .enter().append("circle")
+            .attr("class", "datapoint")
+            .attr("cx", d => d.x)
+            .attr("cy", d => d.y)
+            .attr("r", 4)  // Adjusted radius for points
+            .attr("fill", colorScale(countryData.country))
+            .attr("stroke", "black")
+            .attr("stroke-width", 1)
+            .on("mouseover", function (event, d) {
+                // let value = countryData[Object.keys(countryData).find(key => {
+                //     let coord = angleToCoordinate(featureData.find(f => f.name === key).angle, countryData[key]);
+                //     return coord.x === d.x && coord.y === d.y;
+                // })];
+                // console.log(otherDataValues.find(country => country.country === countryData.country))
+
+
+                if (dataset.value === "energyData") {
+                    tooltipText = "";
+                    let index = pathData.findIndex(pathDatum => pathDatum.value === d.value);
+                    if (index === 0){
+                        tooltipText+= d3.format(".2f")(energyDataValues.find(country => country.country === countryData.country).Solar) + " kilowatt-hours per capita"
+                    } else if (index === 1){
+                        tooltipText+= d3.format(".2f")(energyDataValues.find(country => country.country === countryData.country).Wind) + " kilowatt-hours per capita"
+                    } else if (index === 2){
+                        tooltipText+= d3.format(".2f")(energyDataValues.find(country => country.country === countryData.country).Nuclear) + " kilowatt-hours per capita"
+                    } else if (index === 3){
+                        tooltipText+= d3.format(".2f")(energyDataValues.find(country => country.country === countryData.country).Coal) + " kilowatt-hours per capita"
+                    } else if (index === 4){
+                        tooltipText+= d3.format(".2f")(energyDataValues.find(country => country.country === countryData.country).Hydropower) + " kilowatt-hours per capita"
+                    }
+                    tooltipText += "<br>" + "(" + d3.format(".2f")(d.value * 100) + "%)";
+
+
+                } else {
+                    tooltipText = ""
+                    let index = pathData.findIndex(pathDatum => pathDatum.value === d.value);
+                    if (index === 0){
+                        tooltipText+= d3.format(".2f")(otherDataValues.find(country => country.country === countryData.country).Solar) + " terawatt-hours"
+                    } else if (index === 1){
+                        tooltipText+= d3.format(".2f")(otherDataValues.find(country => country.country === countryData.country).Wind) + " terawatt-hours"
+                    } else if (index === 2){
+                        tooltipText+= d3.format(".2f")(otherDataValues.find(country => country.country === countryData.country).Nuclear)+ " terawatt-hours"
+                    } else if (index === 3){
+                        tooltipText+= d3.format(".2f")(otherDataValues.find(country => country.country === countryData.country).Coal) + " terawatt-hours"
+                    } else if (index === 4){
+                        tooltipText+= d3.format(".2f")(otherDataValues.find(country => country.country === countryData.country).Hydropower) + " terawatt-hours"
+                    }
+                    tooltipText += "<br>" + "(" + d3.format(".2f")(d.value * 100) + "%)";
+                    console.log(tooltipText);
+                }
+
+                tooltip.transition()
+                    .duration(200)
+                    .style("opacity", .9);
+                tooltip.html(tooltipText)
+                    .style("left", (event.pageX) + "px")
+                    .style("top", (event.pageY - 28) + "px");
+            })
+            .on("mousemove", function (event) {
+                tooltip.style("left", (event.pageX) + "px")
+                    .style("top", (event.pageY - 28) + "px");
+            })
+            .on("mouseleave", function (d) {
+                tooltip.transition()
+                    .duration(500)
+                    .style("opacity", 0);
+            });
+
+        // add title
+        svg.append("text")
+            .attr("x", width / 2)
+            .attr("y", 20)
+            .attr("text-anchor", "middle")
+            .text(countryData.country)
+            .attr("font-size", "18px")  // Adjusted font size for the title
+            .attr("font-weight", "bold")  // Bold font for the title
+            .style("font-family", "Nunito, sans-serif");
+    }
+    document.getElementById('dataset').addEventListener('change', function() {
+            let selectedDataset = this.value;
+            d3.selectAll("svg").remove(); // Remove existing radar charts
+            
+            // Choose the appropriate dataset based on the selection
+            let dataset = selectedDataset === "energyData" ? energyData : otherData;
+
+            // Loop through each country and create a radar chart
+            dataset.forEach(function(countryData) {
+                createRadarChart(countryData);
+            });
+        });
+
+    // Loop through each country and create a radar chart
+    energyData.forEach(function(countryData) {
+        createRadarChart(countryData);
+    });
+</script>
+
+</body>
+</html>
