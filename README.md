@@ -1,4 +1,6 @@
-# Energy Consumption Radar Chart By Country
+# Measuring Energy Consumption Levels of the Seven Largest Economies in the World
+
+by Ethan Vo, Hikaru Isayama, and Julia Jung
 
 This is our project on the Energy Consumption Dataset for the DSC 106 class.
 * The link to our project is here: [Energy Consumption Interactive Radar Chart](https://etvoucsd.github.io/RenewableEnergyData/dsc106project3.html)
